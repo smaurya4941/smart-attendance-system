@@ -1,0 +1,7 @@
+streamlit
+opencv-python-headless
+numpy
+face-recognition
+pyzbar
+pillow
+qrcode

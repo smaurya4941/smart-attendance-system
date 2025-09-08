@@ -28,7 +28,7 @@ def main():
         with st.form("Student Registration Form",clear_on_submit=True):
             name=st.text_input("Enter your name here")
             roll=st.text_input("Enter roll no.")
-            class_name=st.text_input("Enter yout class")
+            class_name=st.text_input("Enter your class")
             img_file=st.file_uploader("upload student face image", type=['jpg','png','jpeg'])
             submitted=st.form_submit_button("Register")
             

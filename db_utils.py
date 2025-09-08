@@ -7,6 +7,7 @@ import numpy as np
 import face_recognition
 from pyzbar.pyzbar import decode
 import cv2
+from PIL import Image
 
 
 #buildinf=g setup files for qrcode and face encoding
@@ -152,46 +153,80 @@ def mark_attendance(roll,method):
 
 
 #Setting up QR Scanner with opencv and pyzbar
-def scan_qr():
-    cap=cv2.VideoCapture(0)
-    qr_data=None
+# def scan_qr():
+#     cap=cv2.VideoCapture(0)
+#     qr_data=None
 
-    frame_placeholder=st.empty()
-    while True:
-        ret,frame=cap.read()
+#     frame_placeholder=st.empty()
+#     while True:
+#         ret,frame=cap.read()
 
-        if not ret:
-            st.warning("could not read frame")
-            break
+#         if not ret:
+#             st.warning("could not read frame")
+#             break
 
-        #copy pasted code
-        for qr in decode(frame):
-            qr_data = qr.data.decode("utf-8")
-            # Draw rectangle
-            pts = qr.polygon
-            pts = [(pt.x, pt.y) for pt in pts]
-            pts = cv2.convexHull(np.array(pts, dtype=np.int32))
-            cv2.polylines(frame, [pts], True, (0, 255, 0), 2)
-            cv2.putText(frame, qr_data, (qr.rect.left, qr.rect.top - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+#         #copy pasted code
+#         for qr in decode(frame):
+#             qr_data = qr.data.decode("utf-8")
+#             # Draw rectangle
+#             pts = qr.polygon
+#             pts = [(pt.x, pt.y) for pt in pts]
+#             pts = cv2.convexHull(np.array(pts, dtype=np.int32))
+#             cv2.polylines(frame, [pts], True, (0, 255, 0), 2)
+#             cv2.putText(frame, qr_data, (qr.rect.left, qr.rect.top - 10),
+#                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
             
             
         
     
-        # cv2.imshow("QR Scanner - Press Q to exit", frame)
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame_placeholder.image(frame_rgb,channels="RGB")
+#         # cv2.imshow("QR Scanner - Press Q to exit", frame)
+#         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+#         frame_placeholder.image(frame_rgb,channels="RGB")
+
+#         if qr_data:
+#             cap.release()
+#             return qr_data
+
+#         # if cv2.waitKey(1) & 0xFF == ord("q"):
+#         #     break
+
+#     cap.release()
+#     return None
+
+#FOR STREAMLIT DEPLOY
+def scan_qr():
+    st.info("Scan a QR Code using your webcam")
+
+    # Streamlit camera input
+    img_file = st.camera_input("Take a picture of the QR Code")
+
+    if img_file is not None:
+        # Convert to OpenCV format
+        img = Image.open(img_file)
+        frame = np.array(img)
+
+        # Decode QR
+        decoded_objs = decode(frame)
+        qr_data = None
+        for obj in decoded_objs:
+            qr_data = obj.data.decode("utf-8")
+
+            # Draw rectangle around QR
+            pts = [(pt.x, pt.y) for pt in obj.polygon]
+            pts = np.array(pts, dtype=np.int32)
+            cv2.polylines(frame, [pts], True, (0, 255, 0), 2)
+            cv2.putText(frame, qr_data, (obj.rect.left, obj.rect.top - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+
+        # Show scanned frame in Streamlit
+        st.image(frame, channels="RGB")
 
         if qr_data:
-            cap.release()
             return qr_data
+        else:
+            st.warning("No QR code detected. Please try again.")
 
-        # if cv2.waitKey(1) & 0xFF == ord("q"):
-        #     break
-
-    cap.release()
     return None
-
 
 
 #QR Attendance page
@@ -256,53 +291,92 @@ def load_encoding():
     return encodings
 
 
+# def scan_face():
+#     known_encodings=load_encoding()  #it store the {roll:128-dim encoding } for all the registered students
+#     if not known_encodings:
+#         return None
+
+#     cap=cv2.VideoCapture(0)
+#     st.info("Scanning... Look into the camera")
+
+#     # Create a placeholder for live video in Streamlit
+#     frame_placeholder = st.empty()
+#     while True:
+#         ret,frame=cap.read()
+#         if not  ret:
+#             break
+        
+#         rgb_img=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+
+#         #Detecting face locations using face recognition library anf functions
+#         face_locations=face_recognition.face_locations(rgb_img)
+#         face_encodings=face_recognition.face_encodings(rgb_img,face_locations) #isme webcam se liya gya frame ka encoding store hoga
+
+
+#         #ab face_encodings(via webcam) aur known_encodings(already stored ) ko compare karenge
+#         for (top, right, bottom, left), face_encoding in zip(face_locations,face_encodings):
+#             for roll,known_encoding in known_encodings.items():
+#                 matches=face_recognition.compare_faces([known_encoding],face_encoding)  #comparing both encodings 
+#                 if matches[0]:
+#                     cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
+#                     cv2.putText(frame, roll, (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+#                     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+#                     frame_placeholder.image(frame_rgb, channels="RGB")
+#                     cap.release()
+#                     # cv2.destroyAllWindows()
+#                     return roll
+                
+#         # cv2.imshow("Scanning.. presss Q to exit",frame)
+#         # Show live feed even if no match yet
+#         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+#         frame_placeholder.image(frame_rgb, channels="RGB")
+
+#         # if cv2.waitKey(1) & 0xff==ord('q'):
+#         #     break
+
+#     cap.release()
+#     # cv2.destroyAllWindows()
+#     return None
+
+#FOR STREAMLIT DEPLOYMENT
 def scan_face():
-    known_encodings=load_encoding()  #it store the {roll:128-dim encoding } for all the registered students
+    known_encodings = load_encoding()  # {roll: encoding}
     if not known_encodings:
         return None
 
-    cap=cv2.VideoCapture(0)
-    st.info("Scanning... Look into the camera")
+    st.info("Look into the camera to scan your face")
 
-    # Create a placeholder for live video in Streamlit
-    frame_placeholder = st.empty()
-    while True:
-        ret,frame=cap.read()
-        if not  ret:
-            break
-        
-        rgb_img=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+    # Capture image from webcam
+    img_file = st.camera_input("Take a picture of your face")
 
-        #Detecting face locations using face recognition library anf functions
-        face_locations=face_recognition.face_locations(rgb_img)
-        face_encodings=face_recognition.face_encodings(rgb_img,face_locations) #isme webcam se liya gya frame ka encoding store hoga
+    if img_file is not None:
+        # Convert to OpenCV format
+        img = Image.open(img_file)
+        frame = np.array(img)
+        rgb_img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
+        # Detect faces
+        face_locations = face_recognition.face_locations(rgb_img)
+        face_encodings = face_recognition.face_encodings(rgb_img, face_locations)
 
-        #ab face_encodings(via webcam) aur known_encodings(already stored ) ko compare karenge
-        for (top, right, bottom, left), face_encoding in zip(face_locations,face_encodings):
-            for roll,known_encoding in known_encodings.items():
-                matches=face_recognition.compare_faces([known_encoding],face_encoding)  #comparing both encodings 
+        # Compare with known encodings
+        for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+            for roll, known_encoding in known_encodings.items():
+                matches = face_recognition.compare_faces([known_encoding], face_encoding)
                 if matches[0]:
+                    # Draw rectangle + roll number
                     cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
-                    cv2.putText(frame, roll, (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
-                    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    frame_placeholder.image(frame_rgb, channels="RGB")
-                    cap.release()
-                    # cv2.destroyAllWindows()
+                    cv2.putText(frame, roll, (left, top - 10),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+
+                    st.image(frame, channels="RGB")
                     return roll
-                
-        # cv2.imshow("Scanning.. presss Q to exit",frame)
-        # Show live feed even if no match yet
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame_placeholder.image(frame_rgb, channels="RGB")
 
-        # if cv2.waitKey(1) & 0xff==ord('q'):
-        #     break
+        # If no match found, still show the image
+        st.image(frame, channels="RGB")
+        st.warning("No matching face found in database. Please try again.")
 
-    cap.release()
-    # cv2.destroyAllWindows()
     return None
-
 
 
 

@@ -5,6 +5,7 @@ import qrcode
 import numpy as np
 import face_recognition
 import os
+from PIL import Image
 from pyzbar.pyzbar import decode
 import cv2
 from db_utils import add_student,init_db,fetch_student
