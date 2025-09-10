@@ -152,7 +152,7 @@ def mark_attendance(roll,method):
     return status
 
 
-#Setting up QR Scanner with opencv and pyzbar
+# Setting up QR Scanner with opencv and pyzbar
 # def scan_qr():
 #     cap=cv2.VideoCapture(0)
 #     qr_data=None
@@ -193,7 +193,7 @@ def mark_attendance(roll,method):
 #     cap.release()
 #     return None
 
-#FOR STREAMLIT DEPLOY
+# #FOR STREAMLIT DEPLOY
 def scan_qr():
     st.info("Scan a QR Code using your webcam")
 
@@ -338,7 +338,7 @@ def load_encoding():
 #     # cv2.destroyAllWindows()
 #     return None
 
-#FOR STREAMLIT DEPLOYMENT
+# #FOR STREAMLIT DEPLOYMENT
 def scan_face():
     known_encodings = load_encoding()  # {roll: encoding}
     if not known_encodings:

@@ -1,6 +1,10 @@
+
+
 streamlit
-opencv-python-headless
 numpy
-pyzbar
+opencv-python-headless
+face-recognition
+dlib
 pillow
 qrcode
+pyzbar
